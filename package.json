@@ -2,7 +2,7 @@
   "name": "compare-json",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.ts",
+  "main": "dist/compare-json.js",
   "type": "module",
   "scripts": {
     "test": "jest",
@@ -10,7 +10,7 @@
     "dev": "rollup -c ./rollup.config.js --watch"
   },
   "bin": {
-    "cj": "bin/compare-json.cjs"
+    "cj": "dist/bin/compare-json.cjs"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/vic0627/compare-json#readme",
   "devDependencies": {
+    "@rollup/plugin-alias": "^5.1.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.2.3",

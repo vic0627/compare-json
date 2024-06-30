@@ -1,9 +1,2 @@
-import { program } from "commander";
-
-program.option("--test");
-
-program.parse();
-
-const options = program.opts();
-
-if (options.test) console.log("test succeed");
+export { traverseJson, jsonKeys } from "./actions/parse-json";
+export * as fileOrDir from "./actions/read-file";
