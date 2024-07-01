@@ -6,8 +6,12 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "build": "sh build.sh",
-    "dev": "rollup -c ./rollup.config.js --watch"
+    "build": "node scripts/rollup-bundle.js build --cli --lib",
+    "build:cli": "node scripts/rollup-bundle.js build --cli",
+    "build:lib": "node scripts/rollup-bundle.js build --lib",
+    "dev": "node scripts/rollup-bundle.js watch --cli --lib",
+    "dev:cli": "node scripts/rollup-bundle.js watch --cli",
+    "dev:lib": "node scripts/rollup-bundle.js watch --lib"
   },
   "bin": {
     "cj": "dist/bin/compare-json.cjs"
@@ -30,6 +34,7 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "^20.14.9",
+    "dotenv": "^16.4.5",
     "jest": "^29.7.0",
     "rollup": "^4.18.0",
     "tslib": "^2.6.3",
