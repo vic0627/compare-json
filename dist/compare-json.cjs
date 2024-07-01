@@ -32,6 +32,27 @@ const jsonKeys = (json) => {
     return keys;
 };
 
+var PathType;
+(function (PathType) {
+    PathType[PathType["DIR"] = 0] = "DIR";
+    PathType[PathType["FILE"] = 1] = "FILE";
+    PathType[PathType["NULL"] = 2] = "NULL";
+})(PathType || (PathType = {}));
+
+const checkPathType = (filePath) => new Promise((resolve, rejects) => {
+    fs.stat(filePath, (err, stat) => {
+        if (err)
+            rejects(err);
+        else {
+            if (stat.isFile())
+                resolve(PathType.FILE);
+            else if (stat.isDirectory())
+                resolve(PathType.DIR);
+            else
+                resolve(PathType.NULL);
+        }
+    });
+});
 const readFile = (path, encoding = "utf8") => new Promise((resolve, rejects) => {
     fs.readFile(path, encoding, (err, data) => {
         if (err)
@@ -40,34 +61,53 @@ const readFile = (path, encoding = "utf8") => new Promise((resolve, rejects) => 
             resolve(data);
     });
 });
+const readFileAsFileObject = async (filePath) => {
+    const lastSlash = filePath.lastIndexOf("/");
+    const name = filePath.slice(lastSlash);
+    const path = filePath.replace(name, "");
+    const fileObject = {
+        data: await readFile(filePath),
+        path,
+        name,
+    };
+    return fileObject;
+};
 const readDir = (dirPath) => new Promise((resolve, rejects) => {
-    fs.readdir(dirPath, (err, files) => {
+    fs.readdir(dirPath, async (err, files) => {
         if (err)
             rejects(err);
         else {
-            const filesPromise = files.map(async (name) => {
+            const fileObjects = [];
+            for (const name of files) {
                 const fullPath = path.join(dirPath, name);
-                const data = await readFile(fullPath);
-                return { name, path: dirPath, data };
-            });
-            resolve(Promise.all(filesPromise));
+                const pathType = await checkPathType(fullPath);
+                if (pathType === PathType.FILE)
+                    fileObjects.push(await readFileAsFileObject(fullPath));
+                else if (pathType === PathType.DIR)
+                    fileObjects.push(...(await readDir(fullPath)));
+            }
+            resolve(fileObjects);
         }
     });
 });
 var readFile$1 = async (filePath) => {
-    if (filePath.endsWith(".json") ||
-        filePath.endsWith(".xlsx") ||
-        filePath.endsWith(".csv"))
-        return await readFile(filePath);
+    if (typeof filePath !== "string")
+        throw new TypeError("filePath must be string");
+    const pathType = await checkPathType(filePath);
+    if (pathType === PathType.FILE) {
+        return await readFileAsFileObject(filePath);
+    }
     else
         return await readDir(filePath);
 };
 
 var readFile$2 = /*#__PURE__*/Object.freeze({
     __proto__: null,
+    checkPathType: checkPathType,
     default: readFile$1,
     readDir: readDir,
-    readFile: readFile
+    readFile: readFile,
+    readFileAsFileObject: readFileAsFileObject
 });
 
 exports.fileOrDir = readFile$2;

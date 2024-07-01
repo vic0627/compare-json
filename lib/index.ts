@@ -1,2 +1,2 @@
-export { traverseJson, jsonKeys } from "./actions/parse-json";
-export * as fileOrDir from "./actions/read-file";
+export { traverseJson, jsonKeys } from "./services/parse-json";
+export * as fileOrDir from "./services/read-file";
