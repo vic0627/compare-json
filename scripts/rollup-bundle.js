@@ -1,6 +1,7 @@
 import { rollup } from "rollup";
 import rollupConfig from "./rollup-config.js";
-import { clearDir } from "./utils.js";
+import { clearDir, shell } from "./utils.js";
+import { exec } from "child_process";
 
 const action = process.argv[2];
 const needCli = process.argv.includes("--cli");
@@ -30,10 +31,18 @@ if (action === "build") {
 async function buildProcess() {
   console.log("build process start");
   clearDir();
-  for (const taskName in tasks) {
-    console.log(`start to rollup ${taskName}...`);
-    const task = tasks[taskName];
+  for (const i in tasks) {
+    const task = tasks[i];
+    console.log(`start to rollup ${task._metaname}...`);
     await build(task);
+    for (const outputTask of task.output) {
+      console.log(`output dir: ${outputTask.file}`);
+    }
+    if (needCli && task._metaname === "cli") {
+      shell(
+        `npm unlink compare-json && chmod +x "${task.output[0].file}" && npm link && echo shell script executed...`,
+      );
+    }
   }
   console.log("build process end");
 }
@@ -51,16 +60,13 @@ async function build(task) {
     buildFailed = true;
     console.error(error);
   }
-  if (bundle) {
-    await bundle.close();
-  }
-  process.exit(buildFailed ? 1 : 0);
+  if (bundle) await bundle.close();
 }
 
-async function generateOutputs(bundle, output) {
-  for (const outputOptions of output) {
-    const { output } = await bundle.generate(outputOptions);
-
+async function generateOutputs(bundle, outputOpts) {
+  for (const outputOpt of outputOpts) {
+    await bundle.write(outputOpt);
+    // const { output } = await bundle.generate(outputOpt);
     // for (const chunkOrAsset of output) {
     // if (chunkOrAsset.type === "asset") console.log("Asset", chunkOrAsset);
     // else console.log("Chunk", chunkOrAsset.modules);

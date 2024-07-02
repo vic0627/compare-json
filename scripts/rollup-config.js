@@ -4,9 +4,11 @@ import nodeResolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import terser from "@rollup/plugin-terser";
 import alias from "@rollup/plugin-alias";
+import nodePolyfills from "rollup-plugin-polyfill-node";
 import { getPath, pkgName, pkgNameCamel } from "./utils.js";
 
 const plugins = {
+  pf: nodePolyfills(),
   als: alias({
     entries: [
       {
@@ -29,10 +31,10 @@ export default {
    * cli configuration
    */
   cli: {
+    _metaname: "cli",
     input: {
       input: getPath("lib/index-cli.ts"),
-
-      plugins: Object.values(plugins),
+      plugins: Object.values({ ...plugins, pf: null }).filter((x) => x),
       treeshake: true,
     },
     output: [
@@ -48,9 +50,10 @@ export default {
    * normal lib configuration
    */
   lib: {
+    _metaname: "lib",
     input: {
       input: getPath("lib/index.ts"),
-      plugins: [plugins.cjs, plugins.ts, plugins.bl, plugins.nr],
+      plugins: [plugins.pf, plugins.cjs, plugins.ts, plugins.bl, plugins.nr],
       treeshake: true,
     },
     output: [
